@@ -1,13 +1,13 @@
 /* global Module */
 
 /* Magic Mirror
- * Module: {{MODULE_NAME}}
+ * Module: MMM-DailySchedule
  *
- * By {{AUTHOR_NAME}}
- * {{LICENSE}} Licensed.
+ * By Jared Russell
+ * MIT Licensed.
  */
 
-Module.register("{{MODULE_NAME}}", {
+Module.register("MMM-DailySchedule", {
 	defaults: {
 		updateInterval: 60000,
 		retryDelay: 5000
@@ -24,46 +24,13 @@ Module.register("{{MODULE_NAME}}", {
 		this.loaded = false;
 
 		// Schedule update timer.
-		this.getData();
+		//this.getData();
+		//self.updateDom();
 		setInterval(function() {
 			self.updateDom();
 		}, this.config.updateInterval);
 	},
 
-	/*
-	 * getData
-	 * function example return data and show it in the module wrapper
-	 * get a URL request
-	 *
-	 */
-	getData: function() {
-		var self = this;
-
-		var urlApi = "https://jsonplaceholder.typicode.com/posts/1";
-		var retry = true;
-
-		var dataRequest = new XMLHttpRequest();
-		dataRequest.open("GET", urlApi, true);
-		dataRequest.onreadystatechange = function() {
-			console.log(this.readyState);
-			if (this.readyState === 4) {
-				console.log(this.status);
-				if (this.status === 200) {
-					self.processData(JSON.parse(this.response));
-				} else if (this.status === 401) {
-					self.updateDom(self.config.animationSpeed);
-					Log.error(self.name, this.status);
-					retry = false;
-				} else {
-					Log.error(self.name, "Could not load data.");
-				}
-				if (retry) {
-					self.scheduleUpdate((self.loaded) ? -1 : self.config.retryDelay);
-				}
-			}
-		};
-		dataRequest.send();
-	},
 
 
 	/* scheduleUpdate()
@@ -84,40 +51,104 @@ Module.register("{{MODULE_NAME}}", {
 		}, nextLoad);
 	},
 
+	/*
+	Pseudocode 
+
+	Shrink factor: a number that determins how much an element should be shrunk
+	Rank: hortizontal position of event
+	Width Rank: How far left the event is () Always 1 after the previous event if they share a width
+	Left offset: The offset an event should be from the left border (Will increase left margin of this row section)
+	Info Spacing: Constant: Vertical distance 
+
+	{
+		display_height:
+		shrink-factor: 1/sf of full size
+		rank: how far stacked this item is
+		left offset (int): how many offsets this item should be 
+
+	}
+
+
+
+	//Build array of all events
+	if (longer than Xpx){
+		display like normal
+	}
+	else {
+		Title-Location Display only (maintain minimum height)
+	}
+
+	if (start time is earlier info spacing of the previous event){
+		increment the shrink factor
+		make rank +1 of previous event
+	}
+	else if (start time is earlier than end time of earlier event){
+		Offets the current event by BASE-OFFSET-VALUE plus the offset of previous event
+	}
+	*/
+
 	getDom: function() {
 		var self = this;
 
+		//Should move these to a more appropriate location
+		var normal_display_length = 10;
+
 		// create element wrapper for show into the module
-		var wrapper = document.createElement("div");
+		var wrapper = document.createElement("table");
 		// If this.dataRequest is not empty
-		if (this.dataRequest) {
-			var wrapperDataRequest = document.createElement("div");
-			// check format https://jsonplaceholder.typicode.com/posts/1
-			wrapperDataRequest.innerHTML = this.dataRequest.title;
 
-			var labelDataRequest = document.createElement("label");
-			// Use translate function
-			//             this id defined in translations files
-			labelDataRequest.innerHTML = this.translate("TITLE");
+		var now = moment(); //todays date
 
+		var eventsToDisplay = []
+		var allDayEventsToDisplay = []
 
-			wrapper.appendChild(labelDataRequest);
-			wrapper.appendChild(wrapperDataRequest);
+		for(evnt in this.dataNotification){
+
+			//Calculate the difference
+			var eventStart = moment(this.dataNotification[evnt]["startDate"],"x");
+			var eventEnd = moment(this.dataNotification[evnt]["endDate"],"x");
+
+			//Calculate the cutoffs
+			//TODO: Change values to globals
+			var earlyCutoff = moment().subtract(120, "minutes");
+			var lateCutoff = moment().add(360, 'minutes');
+
+			//TODO: Fix edge case where event is 1440 minutes long but not an all day event e.g. Party that starts at 9am and goes to 9am the next day
+			if(startDateTime.isBefore(lateCutoff) && endDateTime.isAfter(earlyCutoff)){
+
+				//Check if its an all day event
+				var eventLength = moment.duration(endDateTime.diff(startDateTime)).asMinutes();
+
+				//TODO: Find out if any all day events have a length time other than 1440
+				if(eventLength == 1440){
+					if(eventStart.isSame(now, 'day')){
+						allDayEventsToDisplay.append(evnt);
+					}
+				}
+				else{
+					eventsToDisplay.append(evnt);
+				}
+			}
+
+			var eventWrapper = document.createElement("tr");
+			eventWrapper.innerHTML = duration;
+			//eventWrapper.innerHTML = this.dataNotification[evnt]["startDate"];
+			//eventWrapper.innerHTML = moment(this.dataNotification[evnt]["startDate"],"x").toDate();
+			//eventWrapper.innerHTML =  this.dataNotification[evnt]["title"];
+			wrapper.appendChild(eventWrapper);
 		}
 
-		// Data from helper
-		if (this.dataNotification) {
-			var wrapperDataNotification = document.createElement("div");
-			// translations  + datanotification
-			wrapperDataNotification.innerHTML =  this.translate("UPDATE") + ": " + this.dataNotification.date;
+		// if(this.loaded){
+		// 	wrapper.innerHTML = "Done";
+		// } else {
+		// 	wrapper.innerHTML = "Loading...";
+		// }
 
-			wrapper.appendChild(wrapperDataNotification);
-		}
 		return wrapper;
 	},
 
 	getScripts: function() {
-		return [];
+		return ["moment.js"];
 	},
 
 	// Load translations files
@@ -141,9 +172,10 @@ Module.register("{{MODULE_NAME}}", {
 	},
 
 	// socketNotificationReceived from helper
-	socketNotificationReceived: function (notification, payload) {
-		if(notification === "{{MODULE_NAME}}-NOTIFICATION_TEST") {
+	notificationReceived: function (notification, payload, sender) {
+		if(notification === "CALENDAR_EVENTS") {
 			// set dataNotification
+			this.loaded = true;
 			this.dataNotification = payload;
 			this.updateDom();
 		}
