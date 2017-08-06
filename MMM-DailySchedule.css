@@ -8,3 +8,34 @@
  * Custom here your css module
  *
  */
+
+ .line {
+    text-align: left;
+    height: 25px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    font-size: 12px;
+    
+}
+
+.line:after {
+    background-color: #FFF;
+    content: "";
+    display: inline-block;
+    height: 1px;
+    position: relative;
+    vertical-align: middle;
+    width: 50%;
+}
+
+.single-digit-spacing:after {
+    left: 27px;
+}
+.double-digit-spacing:after {
+    left: 20px;
+}
+
+.line:before {
+    right: 0.5em;
+    margin-left: -50%;
+}

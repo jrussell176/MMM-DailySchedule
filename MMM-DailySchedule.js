@@ -51,6 +51,90 @@ Module.register("MMM-DailySchedule", {
 		}, nextLoad);
 	},
 
+	
+	//Influenced by Remi's response to SO question #3895478
+	getTimeRange: function(start, numberOfHours, isMilitaryTime){
+	  var a=[start], b=start, counter=0;
+	  
+	  while(counter < numberOfHours){
+	  	counter+=1;
+
+	  	if(isMilitaryTime){
+	  		if (b < 24){
+		  		b+=1;
+		  	} else {
+		  		b = 0;
+		  	}
+	  	} else {
+	  		if (b < 12){
+		  		b+=1;
+		  	} else {
+		  		b = 1;
+		  	}
+	  	}
+	  	
+
+	  	a.push(b);
+	  }
+	  return a;
+
+	},
+	
+
+	getEvents: function() {
+
+		var self = this;
+
+		//Should move these to a more appropriate location
+		var normal_display_length = 10;
+
+		var now = moment(); //todays date
+
+		var eventsToDisplay = [];
+		var allDayEventsToDisplay = [];
+
+		//Calculate the cutoffs
+		//TODO: Change values to globals
+		var earlyCutoff = moment().subtract(120, "minutes");
+		var lateCutoff = moment().add(360, 'minutes');
+
+		//var eventStart = moment(this.dataNotification[evnt]["startDate"],"x");
+		//var eventEnd = moment(this.dataNotification[evnt]["endDate"],"x");
+		
+
+		for(evnt in this.dataNotification){
+			//Calculate the difference
+			
+			var eventStart = moment(this.dataNotification[evnt]["startDate"],"x");
+			var eventEnd = moment(this.dataNotification[evnt]["endDate"],"x");
+
+			//TODO: Fix edge case where event is 1440 minutes long but not an all day event e.g. Party that starts at 9am and goes to 9am the next day
+			if(eventStart.isBefore(lateCutoff) && eventEnd.isAfter(earlyCutoff)){
+
+				//Check if its an all day event
+				var eventLength = moment.duration(eventStart.diff(eventEnd)).asMinutes();
+
+				//TODO: Find out if any all day events have a length time other than 1440
+				if(eventLength == 1440){
+					if(eventStart.isSame(now, 'day')){
+						//allDayEventsToDisplay.push(evnt);
+						allDayEventsToDisplay.push(this.dataNotification[evnt]);
+					}
+				} else {
+					//eventsToDisplay.push(evnt);
+					eventsToDisplay.push(this.dataNotification[evnt]);
+				}
+			}
+		}
+
+		
+		return {
+        	eventsToDisplay: eventsToDisplay,
+        	allDayEventsToDisplay: allDayEventsToDisplay
+    	};
+
+	},
+
 	/*
 	Pseudocode 
 
@@ -87,68 +171,112 @@ Module.register("MMM-DailySchedule", {
 	}
 	*/
 
+	//TODO: Add option for 24 hour time
 	getDom: function() {
+		
 		var self = this;
+
+		//Grab the events to be displayed
+		var eventData = this.getEvents();
 
 		//Should move these to a more appropriate location
 		var normal_display_length = 10;
 
+		var isMilitaryTime = true
+
 		// create element wrapper for show into the module
-		var wrapper = document.createElement("table");
+		var wrapper = document.createElement("span");
 		// If this.dataRequest is not empty
 
-		var now = moment(); //todays date
+		//Build the calendar backsplash
+		//<div class="line single-digit-spacing">9</div>
+		//<div class="line double-digit-spacing">10</div>
 
-		var eventsToDisplay = []
-		var allDayEventsToDisplay = []
+		//moment().format("YYYY-MM-DD HH:mm"); // 24H clock
+		//moment().format("YYYY-MM-DD hh:mm"); //12H clock
+		var now = moment();
 
-		for(evnt in this.dataNotification){
 
-			//Calculate the difference
-			var eventStart = moment(this.dataNotification[evnt]["startDate"],"x");
-			var eventEnd = moment(this.dataNotification[evnt]["endDate"],"x");
+		//Determine the starting hour
+			
+		var startingHour = now.subtract(2,"hours").hours();
+		var endingHour = now.add(8,"hours").hours();
+		//Reset now
+		now = moment();
 
-			//Calculate the cutoffs
-			//TODO: Change values to globals
-			var earlyCutoff = moment().subtract(120, "minutes");
-			var lateCutoff = moment().add(360, 'minutes');
+		var timeRange = this.getTimeRange(startingHour,endingHour,false);
+			
 
-			//TODO: Fix edge case where event is 1440 minutes long but not an all day event e.g. Party that starts at 9am and goes to 9am the next day
-			if(startDateTime.isBefore(lateCutoff) && endDateTime.isAfter(earlyCutoff)){
+		
 
-				//Check if its an all day event
-				var eventLength = moment.duration(endDateTime.diff(startDateTime)).asMinutes();
+		var arr = [2,3,4];
 
-				//TODO: Find out if any all day events have a length time other than 1440
-				if(eventLength == 1440){
-					if(eventStart.isSame(now, 'day')){
-						allDayEventsToDisplay.append(evnt);
-					}
-				}
-				else{
-					eventsToDisplay.append(evnt);
-				}
+		var backSplash = document.createElement("div");
+
+		//wrapper.appendChild(backSplash);
+
+		
+		for (hour in timeRange){
+			var lineWrapper = document.createElement("div");
+
+			if (timeRange[hour] < 10) {
+				lineWrapper.className = "line single-digit-spacing";
+			} else {
+				lineWrapper.className = "line double-digit-spacing";
 			}
-
-			var eventWrapper = document.createElement("tr");
-			eventWrapper.innerHTML = duration;
-			//eventWrapper.innerHTML = this.dataNotification[evnt]["startDate"];
-			//eventWrapper.innerHTML = moment(this.dataNotification[evnt]["startDate"],"x").toDate();
-			//eventWrapper.innerHTML =  this.dataNotification[evnt]["title"];
-			wrapper.appendChild(eventWrapper);
+			
+			lineWrapper.innerHTML = timeRange[hour];
+			backSplash.appendChild(lineWrapper);
 		}
 
-		// if(this.loaded){
-		// 	wrapper.innerHTML = "Done";
-		// } else {
-		// 	wrapper.innerHTML = "Loading...";
-		// }
+		wrapper.appendChild(backSplash);
+		
+
+		/*
+		var lineWrapper = document.createElement("div");
+		lineWrapper.className = "line single-digit-spacing";
+		lineWrapper.innerHTML = 0;
+		wrapper.appendChild(lineWrapper);
+		*/
+		
+		/*
+		timeRange = range(1,5);
+		for (hour in timeRange){
+			var lineWrapper = document.createElement("div");
+			lineWrapper.className = "line single-digit-spacing";
+			lineWrapper.innerHTML = timeRange[hour];
+			wrapper.appendChild(lineWrapper);
+		}
+		*/
+
+		
+
+		/*
+		var eventWrapper = document.createElement("tr");
+		eventWrapper.innerHTML = "test";
+		wrapper.appendChild(eventWrapper);
+
+		for (evnt in eventData.eventsToDisplay){
+			var eventWrapper = document.createElement("tr");
+			eventWrapper.innerHTML = eventData.eventsToDisplay[evnt]["title"];
+			wrapper.appendChild(eventWrapper);
+		}
+		*/
+		
+		
 
 		return wrapper;
 	},
 
+	
+	// Define required scripts.
+	getStyles: function () {
+		return ["MMM-DailySchedule.css"];
+	},
+	
+
 	getScripts: function() {
-		return ["moment.js"];
+		return ["moment.js","lodash.js"];
 	},
 
 	// Load translations files
@@ -168,7 +296,7 @@ Module.register("MMM-DailySchedule", {
 
 		// the data if load
 		// send notification to helper
-		this.sendSocketNotification("{{MODULE_NAME}}-NOTIFICATION_TEST", data);
+		this.sendSocketNotification("MMM-DailySchedule-NOTIFICATION_TEST", data);
 	},
 
 	// socketNotificationReceived from helper
