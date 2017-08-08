@@ -200,22 +200,21 @@ Module.register("MMM-DailySchedule", {
 		//Determine the starting hour
 			
 		var startingHour = now.subtract(2,"hours").hours();
-		var endingHour = now.add(8,"hours").hours();
+		var endingHour = now.add(10,"hours").hours();
 		//Reset now
 		now = moment();
 
-		var timeRange = this.getTimeRange(startingHour,endingHour,false);
+		var timeRange = this.getTimeRange(startingHour,endingHour,true);
 			
 
 		
 
-		var arr = [2,3,4];
+		timeRange = [2,3,4,5,6,7,8,9,10,11,12];
 
 		var backSplash = document.createElement("div");
 
-		//wrapper.appendChild(backSplash);
+		//timeRange = [1,2,3,4,5,6,7,8];
 
-		
 		for (hour in timeRange){
 			var lineWrapper = document.createElement("div");
 
@@ -230,38 +229,58 @@ Module.register("MMM-DailySchedule", {
 		}
 
 		wrapper.appendChild(backSplash);
-		
 
+		//Add a calendar item
 		/*
-		var lineWrapper = document.createElement("div");
-		lineWrapper.className = "line single-digit-spacing";
-		lineWrapper.innerHTML = 0;
-		wrapper.appendChild(lineWrapper);
+		<div class="box">
+		  <div class="time">
+		    <span>
+		      3:30
+		    </span>
+		    <span>
+		      -
+		    </span>
+		    <span>
+		      4:30
+		    </span>
+		  </div>
+		  <div class="title">
+		    Flight
+		  </div>
+		<div>
 		*/
 		
-		/*
-		timeRange = range(1,5);
-		for (hour in timeRange){
-			var lineWrapper = document.createElement("div");
-			lineWrapper.className = "line single-digit-spacing";
-			lineWrapper.innerHTML = timeRange[hour];
-			wrapper.appendChild(lineWrapper);
-		}
-		*/
-
+		var eventBox = document.createElement("div");
+		eventBox.className = "event-box";
 		
-
+		var eventTime = document.createElement("div");
+		eventTime.className = "event-time";
+		eventTime.innerHTML = "3:30-4:30";
+		
 		/*
-		var eventWrapper = document.createElement("tr");
-		eventWrapper.innerHTML = "test";
-		wrapper.appendChild(eventWrapper);
-
-		for (evnt in eventData.eventsToDisplay){
-			var eventWrapper = document.createElement("tr");
-			eventWrapper.innerHTML = eventData.eventsToDisplay[evnt]["title"];
-			wrapper.appendChild(eventWrapper);
-		}
+		var eventStartTime = document.createElement("span");
+		eventStartTime.innerHTML = "3:30";
+		
+		var timeSeperator = document.createElement("span");
+		timeSeperator.innerHTML = "-";
+		
+		var eventEndTime = document.createElement("span");
+		eventEndTime.innerHTML = "4:30";
 		*/
+		
+		var eventTitle = document.createElement("div");
+		eventTitle.className = "event-title";
+		eventTitle.innerHTML = "Flight";
+
+		//eventTime.appendChild(eventStartTime);
+		//eventTime.appendChild(timeSeperator);
+		//eventTime.appendChild(eventEndTime);
+
+		eventBox.appendChild(eventTime);
+		eventBox.appendChild(eventTitle);
+
+
+		wrapper.appendChild(eventBox);
 		
 		
 
