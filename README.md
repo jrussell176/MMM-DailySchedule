@@ -1,8 +1,8 @@
-# {{MODULE_NAME}}
+# MMM-DailySchedule
 
 This is a module for the [MagicMirror²](https://github.com/MichMich/MagicMirror/).
 
-{{DESCRIPTION}}
+A module for displaying a days schedule
 
 ## Using the module
 
