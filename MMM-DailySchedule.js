@@ -60,7 +60,7 @@ Module.register("MMM-DailySchedule", {
 	  	counter+=1;
 
 	  	if(isMilitaryTime){
-	  		if (b < 24){
+	  		if (b < 23){
 		  		b+=1;
 		  	} else {
 		  		b = 0;
@@ -170,6 +170,14 @@ Module.register("MMM-DailySchedule", {
 		Offets the current event by BASE-OFFSET-VALUE plus the offset of previous event
 	}
 	*/
+	
+	//Size constants
+	/*
+	1 hr = 30px
+	width = 240px //Divisible evenly by 1-6, after 7 just stack them all together and let the last item trail
+	top = 345px
+	
+	*/
 
 	//TODO: Add option for 24 hour time
 	getDom: function() {
@@ -185,7 +193,8 @@ Module.register("MMM-DailySchedule", {
 		var isMilitaryTime = true
 
 		// create element wrapper for show into the module
-		var wrapper = document.createElement("span");
+		var wrapper = document.createElement("div");
+		//wrapper.className("daily-schedule");
 		// If this.dataRequest is not empty
 
 		//Build the calendar backsplash
@@ -209,7 +218,7 @@ Module.register("MMM-DailySchedule", {
 
 		
 
-		timeRange = [2,3,4,5,6,7,8,9,10,11,12];
+		timeRange = [1,2,3,4,5,6,7,8,9,10,11,12];
 
 		var backSplash = document.createElement("div");
 

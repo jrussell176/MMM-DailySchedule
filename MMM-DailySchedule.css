@@ -11,10 +11,9 @@
 
  .line {
     text-align: left;
-    height: 25px;
-    padding-top: 1px;
-    padding-bottom: 1px;
-    font-size: 12px;
+    height: 30px;
+    font-size: 14px;
+    line-height: 30px;
     
 }
 
@@ -25,7 +24,7 @@
     height: 1px;
     position: relative;
     vertical-align: middle;
-    width: 50%;
+    width: 240px;
 }
 
 .single-digit-spacing:after {
@@ -43,12 +42,11 @@
 .event-box {
     position: relative;
     background: rgba(51, 51, 255, 1); /* Shades of Gray */
-    top: -167px;
-    left: 5px;
-    width: 311px;
-    height: 31px;
+    top: -165px;
+    left: 34px;
+    width: 250px;
+    height: 29px;
     border: 1px solid #668cff; /* Shades of blue */
-    margin: 25px;
     border-left-width: 3px;
 }
 
